@@ -1,8 +1,3 @@
-# Importing IAM Module Role Output
-module "monitoring_pipeline_role_import" {
-  source = "../IAM"
-}
-
 # Creating KeyPair
 resource "aws_key_pair" "monitoring_pipeline_KeyPair" {
   key_name   = var.key_pair_name
@@ -78,5 +73,5 @@ resource "aws_security_group" "monitoring_pipeline_SG_Out" {
 # Creating IAM Instance Profile
 resource "aws_iam_instance_profile" "monitoring_pipeline_profile" {
   name_prefix = "monitoring_pipeline_profile"
-  role        = module.monitoring_pipeline_role_import.monitoring_pipeline_role
+  role        = var.monitoring_pipeline_role
 }
