@@ -6,8 +6,8 @@ module "monitoring_pipeline_role_import" {
 # Creating KeyPair
 resource "aws_key_pair" "monitoring_pipeline_KeyPair" {
   key_name   = var.key_pair_name
-  public_key = file("~/.ssh/jenkins_dev_pipeline_keys.pub")
-}
+  public_key = file("/Users/fx/.ssh/jenkins-dev-pipeline-keys.pub")
+  }
 
 # Creating Jenkins Pipeline
 resource "aws_instance" "monitoring_pipeline" {
@@ -18,7 +18,7 @@ resource "aws_instance" "monitoring_pipeline" {
   key_name               = aws_key_pair.monitoring_pipeline_KeyPair.key_name
   vpc_security_group_ids = [aws_security_group.monitoring_pipeline_SG_In.id, aws_security_group.monitoring_pipeline_SG_Out.id]
   iam_instance_profile   = aws_iam_instance_profile.monitoring_pipeline_profile.name
-  user_data              = file("${path.module}/scripts/jenkins-pipeline-bootstrap.sh")
+  user_data              = var.jenkins_user_data_path
   monitoring             = var.monitoring
   tags                   = var.tags
 

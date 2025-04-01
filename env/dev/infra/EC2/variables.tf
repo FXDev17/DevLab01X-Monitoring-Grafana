@@ -29,13 +29,13 @@ variable "monitoring" {
 variable "instance_type" {
   description = "Pipeline Instance Type"
   type        = string
-  default     = "t2.small"
+  default     = "t2.large"
 }
 
 variable "iam_instance_profile_name" {
   description = "IAM instance profile name"
   type        = string
-  default     = "DevLab00X_BG_Instance_Profile"
+  default     = "DevLab01X_Monitoring_Instance_Profile"
 }
 
 variable "ebs_optimized" {
@@ -43,6 +43,13 @@ variable "ebs_optimized" {
   type        = bool
   default     = true
 }
+
+variable "jenkins_user_data_path" {
+  description = "Path to the Jenkins pipeline bootstrap script"
+  type        = string
+  default     = "/Users/fx/WorkSpace/DevLab01X-Monitoring-Grafana/env/dev/infra/EC2/scripts/jenkins-pipeline.bootstrap.sh"
+}
+
 
 variable "security_groups_ingress" {
   description = "Pipeline SG Ingress"
