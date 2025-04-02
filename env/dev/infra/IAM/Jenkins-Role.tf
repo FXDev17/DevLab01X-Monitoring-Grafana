@@ -1,4 +1,4 @@
-# IAM Role for EC2
+# IAM Role for EC2 (Monitor EC2 instances)
 resource "aws_iam_role" "monitoring_pipeline_Role" {
   name               = "monitoring_pipeline_Role"
   assume_role_policy = jsonencode({
@@ -11,7 +11,7 @@ resource "aws_iam_role" "monitoring_pipeline_Role" {
   })
 }
 
-# IAM Policy
+# IAM Policy for monitoring pipeline role
 resource "aws_iam_policy" "monitoring_pipeline_Policy" {
   name        = "monitoring_pipeline_Policy"
   description = "Permissions for monitoring pipeline"
@@ -33,18 +33,27 @@ resource "aws_iam_policy" "monitoring_pipeline_Policy" {
         Effect   = "Allow",
         Action   = ["iam:GetRole", "iam:GetPolicy", "iam:List*"],
         Resource = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/monitoring_pipeline_Role"]
+      },
+      {
+        Effect   = "Allow",
+        Action   = "sts:AssumeRole",
+        Resource = [
+          "arn:aws:iam::817520395860:role/monitoring_pipeline_Role", 
+          "arn:aws:iam::817520395860:role/pipeline_execution_Role", 
+          "arn:aws:iam::817520395860:role/jenkins_terraform_deploy_role"  # Added role for Jenkins
+        ]
       }
     ]
   })
 }
 
-# Policy Attachment
+# Policy Attachment for monitoring role
 resource "aws_iam_role_policy_attachment" "monitoring_pipeline_attachment" {
   role       = aws_iam_role.monitoring_pipeline_Role.name
   policy_arn = aws_iam_policy.monitoring_pipeline_Policy.arn
 }
 
-# Instance Profile
+# Instance Profile for monitoring pipeline role
 resource "aws_iam_instance_profile" "monitoring_pipeline_profile" {
   name = "monitoring_pipeline_profile"
   role = aws_iam_role.monitoring_pipeline_Role.name

@@ -19,19 +19,16 @@ resource "aws_iam_policy" "pipeline_execution_Policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # S3 permissions
       {
         Effect   = "Allow",
         Action   = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
         Resource = ["arn:aws:s3:::devlab00-logging", "arn:aws:s3:::devlab00-logging/*"]
       },
-      # EC2 permissions
       {
         Effect   = "Allow",
         Action   = ["ec2:DescribeInstances", "ec2:StartInstances", "ec2:StopInstances"],
         Resource = "*"
       },
-      # IAM self-inspection
       {
         Effect   = "Allow",
         Action   = ["iam:GetRole", "iam:GetPolicy", "iam:List*"],
@@ -53,7 +50,7 @@ resource "aws_iam_instance_profile" "pipeline_execution_profile" {
   role = aws_iam_role.pipeline_execution_Role.name
 }
 
-# 5. Jenkins Pipeline Execution Role (NEW)
+# 5. Jenkins Pipeline Execution Role (for assuming roles)
 resource "aws_iam_role" "jenkins_pipeline_role" {
   name               = "jenkins_terraform_deploy_role"
   assume_role_policy = jsonencode({
@@ -62,7 +59,7 @@ resource "aws_iam_role" "jenkins_pipeline_role" {
       Action    = "sts:AssumeRole"
       Effect    = "Allow"
       Principal = {
-        AWS = "arn:aws:iam::817520395860:role/monitoring_pipeline_Role" # Tighten this to your Jenkins instance role ARN later
+        AWS = "arn:aws:iam::817520395860:role/monitoring_pipeline_Role"  # Jenkins instance role (if Jenkins is on EC2)
       }
     }]
   })
