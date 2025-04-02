@@ -6,11 +6,15 @@ resource "aws_vpc" "main" {
   tags                 = var.vpc_tags
 }
 
+locals {
+  target_az = data.aws_availability_zones.available.names[0]  # e.g., "eu-west-2a"
+}
+
 # Setting Up Public Subnet
 resource "aws_subnet" "public_subnet" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.cidr_block_public_subnet
-  availability_zone = var.public_availability_zone
+  availability_zone = local.target_az
   tags              = var.public_subnet_tags
 }
 
@@ -18,7 +22,7 @@ resource "aws_subnet" "public_subnet" {
 resource "aws_subnet" "private_subnet" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.cidr_block_private_subnet
-  availability_zone = var.private_availability_zone
+  availability_zone = local.target_az
   tags              = var.private_subnet_tags
 }
 
