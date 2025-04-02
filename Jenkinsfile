@@ -71,14 +71,41 @@ pipeline {
             }
         }
 
+        // stage('Terraform Plan') {
+        //     steps {
+        //         script {
+        //             echo "${ANSI_COLOR}📝 Generating Terraform Plan...${ANSI_RESET}"
+        //             try {
+        //                 dir('env/dev') {
+        //                     withCredentials([string(credentialsId: 'jenkins_ssh_public_key', variable: 'SSH_KEY')]) {
+        //                         withAWS(role: AWS_ROLE_ARN, roleSessionName: 'jenkins-session') {
+        //                             sh '''
+        //                                 terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
+        //                                 terraform plan -var "ssh_public_key=${SSH_KEY}" -out=tfplan | sed "s/^/${ANSI_COLOR}[TF Plan] ${ANSI_RESET}/"
+        //                             '''
+        //                         }
+        //                     }
+        //                 }
+        //                 echo "${ANSI_SUCCESS}✅ Terraform plan generated successfully${ANSI_RESET}"
+        //             } catch (Exception e) {
+        //                 echo "${ANSI_ERROR}❌ Terraform Plan failed: ${e.getMessage()}${ANSI_RESET}"
+        //                 error 'Stopping pipeline due to Terraform Plan failure'
+        //             }
+        //         }
+        //     }
+        // }
+
+
         stage('Terraform Plan') {
             steps {
                 script {
                     echo "${ANSI_COLOR}📝 Generating Terraform Plan...${ANSI_RESET}"
                     try {
                         dir('env/dev') {
+                            // Ensure your Jenkins instance is configured with the necessary AWS credentials
                             withCredentials([string(credentialsId: 'jenkins_ssh_public_key', variable: 'SSH_KEY')]) {
-                                withAWS(role: AWS_ROLE_ARN, roleSessionName: 'jenkins-session') {
+                                // Ensure you replace 'AWS_ROLE_ARN' with the actual ARN of the role to assume
+                                withAWS(role: 'arn:aws:iam::817520395860:role/monitoring_pipeline_Role', roleSessionName: 'jenkins-session') {
                                     sh '''
                                         terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
                                         terraform plan -var "ssh_public_key=${SSH_KEY}" -out=tfplan | sed "s/^/${ANSI_COLOR}[TF Plan] ${ANSI_RESET}/"
