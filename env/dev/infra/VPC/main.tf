@@ -1,4 +1,4 @@
-# Setting Up VPC
+# Setting Up VPC (unchanged)
 resource "aws_vpc" "main" {
   cidr_block           = var.cidr_block
   enable_dns_support   = var.enable_dns_support
@@ -6,11 +6,15 @@ resource "aws_vpc" "main" {
   tags                 = var.vpc_tags
 }
 
-locals {
-  target_az = data.aws_availability_zones.available.names[0] # e.g., "eu-west-2a"
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
-# Setting Up Public Subnet
+locals {
+  target_az = data.aws_availability_zones.available.names[0]
+}
+
+# Subnets (unchanged)
 resource "aws_subnet" "public_subnet" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.cidr_block_public_subnet
@@ -18,7 +22,6 @@ resource "aws_subnet" "public_subnet" {
   tags              = var.public_subnet_tags
 }
 
-# Setting Up Private Subnet
 resource "aws_subnet" "private_subnet" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.cidr_block_private_subnet
@@ -26,14 +29,13 @@ resource "aws_subnet" "private_subnet" {
   tags              = var.private_subnet_tags
 }
 
-# Setting Up Internet Gateway for Public Subnet
+# Internet Gateway (unchanged)
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   tags   = var.igw_tags
 }
 
-
-# NAT Gateway for Private Subnet to Access the Internet
+# NAT Gateway (unchanged)
 resource "aws_eip" "nat_eip" {}
 
 resource "aws_nat_gateway" "nat_gateway" {
@@ -41,30 +43,36 @@ resource "aws_nat_gateway" "nat_gateway" {
   subnet_id     = aws_subnet.public_subnet.id
 }
 
+# Corrected Route Tables and Routes
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.main.id
+}
 
-# Setting Up Public Route
-resource "aws_route" "public__subnet_route" {
-  route_table_id         = aws_route.public__subnet_route.id
-  destination_cidr_block = var.cidr_block_public_subnet
+resource "aws_route_table" "private_route_table" {
+  vpc_id = aws_vpc.main.id
+}
+
+# Public Route - Using YOUR variable for destination CIDR
+resource "aws_route" "public_route" {
+  route_table_id         = aws_route_table.public_route_table.id
+  destination_cidr_block = var.cidr_block_public_subnet  # Your original variable
   gateway_id             = aws_internet_gateway.igw.id
 }
 
-# Associating Public Route
-resource "aws_route_table_association" "public_route_table_association" {
-  subnet_id      = aws_subnet.public_subnet.id
-  route_table_id = aws_route.public__subnet_route.id
-}
-
-# Setting Up Private Route
-resource "aws_route" "private_subnet_route" {
-  route_table_id         = aws_route.private_subnet_route.id
-  destination_cidr_block = var.private_destination_cidr_block
+# Private Route - Using YOUR variable for destination CIDR
+resource "aws_route" "private_route" {
+  route_table_id         = aws_route_table.private_route_table.id
+  destination_cidr_block = var.private_destination_cidr_block  # Your original variable
   nat_gateway_id         = aws_nat_gateway.nat_gateway.id
 }
 
-# Associating Private Route
+# Route Table Associations (unchanged structure, fixed references)
+resource "aws_route_table_association" "public_route_table_association" {
+  subnet_id      = aws_subnet.public_subnet.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
 resource "aws_route_table_association" "private_route_table_association" {
   subnet_id      = aws_subnet.private_subnet.id
-  route_table_id = aws_route.private_subnet_route.id
-
+  route_table_id = aws_route_table.private_route_table.id
 }
