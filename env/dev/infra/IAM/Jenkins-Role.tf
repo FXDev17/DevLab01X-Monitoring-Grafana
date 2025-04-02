@@ -69,8 +69,10 @@ data "aws_iam_policy_document" "monitoring_pipeline_Permissions_Policy" {
       "iam:GetPolicy"
     ]
     resources = [
-      "arn:aws:iam::817520395860:role/monitoring_pipeline_Role/*",
-      "arn:aws:iam::817520395860:policy/monitoring_pipeline_Policy/*"
+      "arn:aws:iam::817520395860:role/monitoring_pipeline_Role",       # Added exact role ARN
+      "arn:aws:iam::817520395860:role/monitoring_pipeline_Role/*",     # Existing path pattern
+      "arn:aws:iam::817520395860:policy/monitoring_pipeline_Policy",   # Added exact policy ARN
+      "arn:aws:iam::817520395860:policy/monitoring_pipeline_Policy/*"  # Existing path pattern
     ]
   }
 }
@@ -86,4 +88,10 @@ resource "aws_iam_policy" "monitoring_pipeline_Policy" {
 resource "aws_iam_role_policy_attachment" "monitoring_pipeline_Role_Attachment" {
   role       = aws_iam_role.monitoring_pipeline_Role.name
   policy_arn = aws_iam_policy.monitoring_pipeline_Policy.arn
+}
+
+# Create instance profile for EC2
+resource "aws_iam_instance_profile" "monitoring_pipeline_profile" {
+  name = "monitoring_pipeline_profile"
+  role = aws_iam_role.monitoring_pipeline_Role.name
 }
