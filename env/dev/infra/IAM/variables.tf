@@ -1,17 +1,14 @@
-variable "role_name" {
-  description = "monitoring_pipeline Role Name"
-  type        = string
+variable "ec2_role_name" {
+  description = "Name of the IAM role for the EC2 instance"
   default     = "monitoring_pipeline_Role"
 }
 
-variable "aws_iam_policy_name" {
-  description = "monitoring_pipeline Role Policy"
-  type        = string
+variable "ec2_policy_name" {
+  description = "Name of the IAM policy for the EC2 instance"
   default     = "monitoring_pipeline_Policy"
 }
 
-variable "aws_iam_policy_description" {
-  description = "monitoring_pipeline Role Policy Description"
-  type        = string
-  default     = "monitoring_pipeline_Role_Policy"
+variable "pipeline_role_name" {
+  description = "Name of the IAM role for the Terraform pipeline"
+  default     = "terraform_deploy_role"  # ← New role for pipeline
 }

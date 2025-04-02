@@ -2,154 +2,132 @@ pipeline {
     agent any
 
     environment {
-        AWS_DEFAULT_REGION = 'eu-west-2'  // Set your region
+        AWS_DEFAULT_REGION = 'eu-west-2'
+        AWS_ROLE_ARN = 'arn:aws:iam::817520395860:role/monitoring_pipeline_Role'
+        ANSI_COLOR = "\033[34m" // Blue for info
+        ANSI_SUCCESS = "\033[32m" // Green for success
+        ANSI_WARNING = "\033[33m" // Yellow for warnings
+        ANSI_ERROR = "\033[31m" // Red for errors
+        ANSI_RESET = "\033[0m"
     }
 
     tools {
-        terraform 'Terraform'  // Must match Jenkins tool config
+        terraform 'Terraform'
     }
 
     stages {
-        // Pipeline Check Security Testing: CheckOV, TRIVY, SNYK, GITLEAKS
         stage('Security Testing') {
             steps {
                 script {
-                    echo 'Starting Security Tests...'
-
-                    // Checkov: Static code analysis
-                    echo 'Running CheckOV Scan...'
+                    echo "${ANSI_COLOR}=== STARTING SECURITY TESTS ===${ANSI_RESET}"
+                    
+                    // CheckOV
+                    echo "${ANSI_COLOR}🔍 Running CheckOV Scan...${ANSI_RESET}"
                     try {
-                        sh  '''
+                        sh '''
                             source /opt/security-tools-env/bin/activate
-                            checkov -d . --soft-fail
+                            checkov -d . --soft-fail | sed "s/^/${ANSI_COLOR}[CheckOV] ${ANSI_RESET}/"
                             deactivate
-                            ''' // to use when checkov is created in an venv
-                        // sh 'sudo /home/ec2-user/.local/bin/checkov -d . --soft-fail'
-                        echo 'Checkov scan completed successfully.'
+                        '''
+                        echo "${ANSI_SUCCESS}✅ CheckOV scan completed successfully${ANSI_RESET}"
                     } catch (Exception e) {
-                        echo "Checkov scan failed: ${e.getMessage()}"
+                        echo "${ANSI_WARNING}⚠️ CheckOV scan warnings: ${e.getMessage()}${ANSI_RESET}"
                     }
 
-                    // Trivy: Filesystem scan
-                    echo 'Running Trivy filesystem scan...'
+                    // Trivy
+                    echo "${ANSI_COLOR}🔍 Running Trivy Filesystem Scan...${ANSI_RESET}"
                     try {
-                        sh 'trivy fs --exit-code 1 --severity HIGH,CRITICAL .'
-                        echo 'Trivy scan completed successfully.'
+                        sh 'trivy fs --exit-code 1 --severity HIGH,CRITICAL . | sed "s/^/${ANSI_COLOR}[Trivy] ${ANSI_RESET}/"'
+                        echo "${ANSI_SUCCESS}✅ Trivy scan completed successfully${ANSI_RESET}"
                     } catch (Exception e) {
-                        echo "Trivy scan failed: ${e.getMessage()}"
+                        echo "${ANSI_ERROR}❌ Trivy scan failed: ${e.getMessage()}${ANSI_RESET}"
                         error 'Stopping pipeline due to critical security issues'
                     }
 
-                    echo 'Running Snyk vulnerability test...'
-                    sh 'ls -la .'  // Debug
+                    // Snyk
+                    echo "${ANSI_COLOR}🔍 Running Snyk Vulnerability Test...${ANSI_RESET}"
                     try {
                         withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
-                            sh 'snyk auth $SNYK_TOKEN && echo "Snyk authenticated successfully"'
-                            sh 'snyk iac test . --severity-threshold=high -d || true'
+                            sh 'snyk auth $SNYK_TOKEN'
+                            sh 'snyk iac test . --severity-threshold=high -d | sed "s/^/${ANSI_COLOR}[Snyk] ${ANSI_RESET}/" || true'
                         }
-                        echo 'Snyk test completed successfully.'
+                        echo "${ANSI_SUCCESS}✅ Snyk test completed successfully${ANSI_RESET}"
                     } catch (Exception e) {
-                        echo "Snyk test failed: ${e.getMessage()}"
+                        echo "${ANSI_WARNING}⚠️ Snyk test warnings: ${e.getMessage()}${ANSI_RESET}"
                     }
 
-                    // Gitleaks: Secrets detection
-                    echo 'Running Gitleaks secrets detection...'
+                    // Gitleaks
+                    echo "${ANSI_COLOR}🔍 Running Gitleaks Secrets Detection...${ANSI_RESET}"
                     try {
-                        sh 'gitleaks detect --source . --exit-code 1'
-                        echo 'Gitleaks scan completed successfully.'
+                        sh 'gitleaks detect --source . --exit-code 1 | sed "s/^/${ANSI_COLOR}[Gitleaks] ${ANSI_RESET}/"'
+                        echo "${ANSI_SUCCESS}✅ Gitleaks scan completed successfully${ANSI_RESET}"
                     } catch (Exception e) {
-                        echo "Gitleaks failed: ${e.getMessage()}"
+                        echo "${ANSI_ERROR}❌ Gitleaks failed: ${e.getMessage()}${ANSI_RESET}"
                         error 'Stopping pipeline due to secrets detected'
                     }
 
-                    echo 'All security tests completed.'
+                    echo "${ANSI_SUCCESS}✔️ All security tests completed${ANSI_RESET}"
                 }
             }
         }
 
-        // Pipeline Check Terraform Plan With SSHKeys
         stage('Terraform Plan') {
-            steps { 
+            steps {
                 script {
+                    echo "${ANSI_COLOR}📝 Generating Terraform Plan...${ANSI_RESET}"
                     try {
-                        echo 'Generating Terraform Plan...'
-                        
-                        // Change to the env/dev directory before running terraform commands
                         dir('env/dev') {
-                            // Securely pass the SSH key using withCredentials
                             withCredentials([string(credentialsId: 'jenkins_ssh_public_key', variable: 'SSH_KEY')]) {
-                                // Initialize Terraform
-                                sh 'terraform init'
-                                
-                                // Run terraform plan from the correct directory and securely pass the SSH key
-                                sh "terraform plan -var 'ssh_public_key=${SSH_KEY}' -out=tfplan"
+                                withAWS(role: AWS_ROLE_ARN, roleSessionName: 'jenkins-session') {
+                                    sh '''
+                                        terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
+                                        terraform plan -var "ssh_public_key=${SSH_KEY}" -out=tfplan | sed "s/^/${ANSI_COLOR}[TF Plan] ${ANSI_RESET}/"
+                                    '''
+                                }
                             }
                         }
+                        echo "${ANSI_SUCCESS}✅ Terraform plan generated successfully${ANSI_RESET}"
                     } catch (Exception e) {
-                        echo "Terraform Plan failed: ${e.getMessage()}"
+                        echo "${ANSI_ERROR}❌ Terraform Plan failed: ${e.getMessage()}${ANSI_RESET}"
                         error 'Stopping pipeline due to Terraform Plan failure'
                     }
                 }
             }
         }
 
-
-        // stage('Terraform Plan') {
-        //     steps { 
-        //         script {
-        //             try {
-        //                 echo 'Generating Terraform Plan...'
-                        
-        //                 // Change to the env/dev directory before running terraform commands
-        //                 dir('env/dev') {
-        //                     // Securely pass the SSH key using withCredentials
-        //                         // Initialize Terraform
-        //                         sh 'terraform init'
-                                
-        //                         // Run terraform plan from the correct directory and securely pass the SSH key
-        //                         sh "terraform plan -out=tfplan"
-
-        //                 }
-        //             } catch (Exception e) {
-        //                 echo "Terraform Plan failed: ${e.getMessage()}"
-        //                 error 'Stopping pipeline due to Terraform Plan failure'
-        //             }
-        //         }
-        //     }
-        // }
-
-
-        // Pipeline Check Terraform Approval
         stage('Approval') {
             steps {
                 script {
+                    echo "${ANSI_COLOR}🛑 Manual Approval Required${ANSI_RESET}"
                     def userInput = input(
                         id: 'approvePlan',
                         message: 'Approve Terraform Plan?',
                         ok: 'Approve',
-                        submitter: 'admin',  // Optional: restrict to admins
+                        submitter: 'admin',
                         parameters: [choice(name: 'ACTION', choices: ['Approve', 'Reject'], description: 'Approve or Reject the plan')]
                     )
                     if (userInput == 'Reject') {
-                        echo 'Plan rejected by user.'
-                        error 'Pipeline stopped due to rejection.'
+                        echo "${ANSI_ERROR}❌ Plan rejected by user${ANSI_RESET}"
+                        error 'Pipeline stopped due to rejection'
                     }
-                    echo 'Plan approved. Proceeding...'
+                    echo "${ANSI_SUCCESS}👍 Plan approved${ANSI_RESET}"
                 }
             }
         }
-        // Pipeline Check Terraform Apply
+
         stage('Terraform Apply') {
             steps {
                 script {
+                    echo "${ANSI_COLOR}🚀 Applying Terraform Changes...${ANSI_RESET}"
                     try {
-                        echo 'Applying Terraform changes...'
                         dir('env/dev') {
-                            
-                            sh 'terraform apply -auto-approve tfplan'
+                            withAWS(role: AWS_ROLE_ARN, roleSessionName: 'jenkins-session') {
+                                sh 'terraform apply -auto-approve tfplan | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"'
+                            }
                         }
+                        echo "${ANSI_SUCCESS}🎉 Terraform changes applied successfully!${ANSI_RESET}"
                     } catch (Exception e) {
-                        echo "Terraform Apply failed: ${e.getMessage()}"
+                        echo "${ANSI_ERROR}❌ Terraform Apply failed: ${e.getMessage()}${ANSI_RESET}"
                         error 'Stopping pipeline due to Terraform Apply failure'
                     }
                 }
@@ -159,14 +137,14 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline finished. Cleaning up...'
+            echo "${ANSI_COLOR}🧹 Pipeline finished. Cleaning up...${ANSI_RESET}"
             sh 'rm -f tfplan'
         }
         success {
-            echo 'Terraform changes applied successfully!'
+            echo "${ANSI_SUCCESS}✨ Pipeline succeeded!${ANSI_RESET}"
         }
         failure {
-            echo 'Pipeline failed. Review the logs for details.'
+            echo "${ANSI_ERROR}💥 Pipeline failed. Review the logs above for details.${ANSI_RESET}"
         }
     }
 }
