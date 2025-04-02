@@ -1,6 +1,6 @@
 # 1. Monitoring Pipeline Role (for EC2 instances)
-resource "aws_iam_role" "monitoring_pipeline_Role" {
-  name               = "monitoring_pipeline_Role"
+resource "aws_iam_role" "pipeline_execution_Role" {
+  name               = "pipeline_execution_Role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -12,8 +12,8 @@ resource "aws_iam_role" "monitoring_pipeline_Role" {
 }
 
 # 2. Monitoring Pipeline Policy (EC2 runtime permissions)
-resource "aws_iam_policy" "monitoring_pipeline_Policy" {
-  name        = "monitoring_pipeline_Policy"
+resource "aws_iam_policy" "pipeline_execution_Policy" {
+  name        = "pipeline_execution_Policy"
   description = "Permissions for monitoring pipeline EC2 instances"
 
   policy = jsonencode({
@@ -35,22 +35,22 @@ resource "aws_iam_policy" "monitoring_pipeline_Policy" {
       {
         Effect   = "Allow",
         Action   = ["iam:GetRole", "iam:GetPolicy", "iam:List*"],
-        Resource = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/monitoring_pipeline_Role"]
+        Resource = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/pipeline_execution_Role"]
       }
     ]
   })
 }
 
 # 3. Attach policy to monitoring role
-resource "aws_iam_role_policy_attachment" "monitoring_pipeline_attachment" {
-  role       = aws_iam_role.monitoring_pipeline_Role.name
-  policy_arn = aws_iam_policy.monitoring_pipeline_Policy.arn
+resource "aws_iam_role_policy_attachment" "pipeline_execution_attachment" {
+  role       = aws_iam_role.pipeline_execution_Role.name
+  policy_arn = aws_iam_policy.pipeline_execution_Policy.arn
 }
 
 # 4. Instance profile for EC2
-resource "aws_iam_instance_profile" "monitoring_pipeline_profile" {
-  name = "monitoring_pipeline_profile"
-  role = aws_iam_role.monitoring_pipeline_Role.name
+resource "aws_iam_instance_profile" "pipeline_execution_profile" {
+  name = "pipeline_execution_profile"
+  role = aws_iam_role.pipeline_execution_Role.name
 }
 
 # 5. Jenkins Pipeline Execution Role (NEW)
@@ -62,7 +62,7 @@ resource "aws_iam_role" "jenkins_pipeline_role" {
       Action    = "sts:AssumeRole"
       Effect    = "Allow"
       Principal = {
-        AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" # Tighten this to your Jenkins instance role ARN later
+        AWS = "arn:aws:iam::817520395860:role/monitoring_pipeline_Role" # Tighten this to your Jenkins instance role ARN later
       }
     }]
   })
