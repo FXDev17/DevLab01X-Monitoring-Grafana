@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_DEFAULT_REGION = 'eu-west-2'
-        AWS_ROLE_ARN = 'arn:aws:iam::817520395860:role/monitoring_pipeline_Role'
+        AWS_ROLE_ARN = 'arn:aws:iam::817520395860:role/pipeline_execution_Roles'
         ANSI_COLOR = "\033[34m" // Blue for info
         ANSI_SUCCESS = "\033[32m" // Green for success
         ANSI_WARNING = "\033[33m" // Yellow for warnings
