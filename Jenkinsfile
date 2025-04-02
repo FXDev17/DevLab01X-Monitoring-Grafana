@@ -3,12 +3,15 @@ pipeline {
 
     environment {
         AWS_DEFAULT_REGION = 'eu-west-2'
-        AWS_ROLE_ARN = 'arn:aws:iam::817520395860:role/pipeline_execution_Roles'
         ANSI_COLOR = "\033[34m" // Blue for info
         ANSI_SUCCESS = "\033[32m" // Green for success
         ANSI_WARNING = "\033[33m" // Yellow for warnings
         ANSI_ERROR = "\033[31m" // Red for errors
         ANSI_RESET = "\033[0m"
+
+        // Set AWS credentials here directly from Jenkins' credentials manager
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')  // Jenkins Credential ID
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')  // Jenkins Credential ID
     }
 
     tools {
@@ -71,47 +74,17 @@ pipeline {
             }
         }
 
-        // stage('Terraform Plan') {
-        //     steps {
-        //         script {
-        //             echo "${ANSI_COLOR}📝 Generating Terraform Plan...${ANSI_RESET}"
-        //             try {
-        //                 dir('env/dev') {
-        //                     withCredentials([string(credentialsId: 'jenkins_ssh_public_key', variable: 'SSH_KEY')]) {
-        //                         withAWS(role: AWS_ROLE_ARN, roleSessionName: 'jenkins-session') {
-        //                             sh '''
-        //                                 terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
-        //                                 terraform plan -var "ssh_public_key=${SSH_KEY}" -out=tfplan | sed "s/^/${ANSI_COLOR}[TF Plan] ${ANSI_RESET}/"
-        //                             '''
-        //                         }
-        //                     }
-        //                 }
-        //                 echo "${ANSI_SUCCESS}✅ Terraform plan generated successfully${ANSI_RESET}"
-        //             } catch (Exception e) {
-        //                 echo "${ANSI_ERROR}❌ Terraform Plan failed: ${e.getMessage()}${ANSI_RESET}"
-        //                 error 'Stopping pipeline due to Terraform Plan failure'
-        //             }
-        //         }
-        //     }
-        // }
-
-
         stage('Terraform Plan') {
             steps {
                 script {
                     echo "${ANSI_COLOR}📝 Generating Terraform Plan...${ANSI_RESET}"
                     try {
                         dir('env/dev') {
-                            // Ensure your Jenkins instance is configured with the necessary AWS credentials
-                            withCredentials([string(credentialsId: 'jenkins_ssh_public_key', variable: 'SSH_KEY')]) {
-                                // Ensure you replace 'AWS_ROLE_ARN' with the actual ARN of the role to assume
-                                withAWS(role: 'arn:aws:iam::817520395860:role/monitoring_pipeline_Role', roleSessionName: 'jenkins-session') {
-                                    sh '''
-                                        terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
-                                        terraform plan -var "ssh_public_key=${SSH_KEY}" -out=tfplan | sed "s/^/${ANSI_COLOR}[TF Plan] ${ANSI_RESET}/"
-                                    '''
-                                }
-                            }
+                            // Use the AWS credentials directly from environment variables
+                            sh '''
+                                terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
+                                terraform plan -out=tfplan | sed "s/^/${ANSI_COLOR}[TF Plan] ${ANSI_RESET}/"
+                            '''
                         }
                         echo "${ANSI_SUCCESS}✅ Terraform plan generated successfully${ANSI_RESET}"
                     } catch (Exception e) {
@@ -148,9 +121,8 @@ pipeline {
                     echo "${ANSI_COLOR}🚀 Applying Terraform Changes...${ANSI_RESET}"
                     try {
                         dir('env/dev') {
-                            withAWS(role: AWS_ROLE_ARN, roleSessionName: 'jenkins-session') {
-                                sh 'terraform apply -auto-approve tfplan | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"'
-                            }
+                            // Use the AWS credentials directly from environment variables
+                            sh 'terraform apply -auto-approve tfplan | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"'
                         }
                         echo "${ANSI_SUCCESS}🎉 Terraform changes applied successfully!${ANSI_RESET}"
                     } catch (Exception e) {
