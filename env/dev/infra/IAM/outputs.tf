@@ -1,12 +1,14 @@
-# Output the IAM role's name
 output "monitoring_pipeline_role" {
+  description = "IAM role name for monitoring pipeline"
   value       = aws_iam_role.monitoring_pipeline_Role.name
-  description = "The name of the Jenkins Dev Pipeline IAM role"
-#   depends_on = [ aws_iam_role.monitoring_Pipeline_Role ]
 }
 
-# Output the IAM role's arn
 output "monitoring_pipeline_role_arn" {
-  value = aws_iam_role.monitoring_pipeline_Role.arn
+  description = "IAM role ARN for monitoring pipeline"
+  value       = aws_iam_role.monitoring_pipeline_Role.arn
 }
 
+output "monitoring_policy_arn" {
+  description = "IAM policy ARN for monitoring pipeline"
+  value       = aws_iam_policy.monitoring_pipeline_Policy.arn
+}
