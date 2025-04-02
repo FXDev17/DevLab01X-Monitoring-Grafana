@@ -129,7 +129,3 @@ variable "tags" {
   }
 }
 
-variable "monitoring_pipeline_role" {
-  description = "The monitoring pipeline role from IAM module"
-  type        = string
-}
