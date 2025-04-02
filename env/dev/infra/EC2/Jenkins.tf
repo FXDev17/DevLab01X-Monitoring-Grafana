@@ -12,7 +12,6 @@ resource "aws_instance" "monitoring_pipeline" {
   ebs_optimized          = var.ebs_optimized
   key_name               = aws_key_pair.monitoring_pipeline_KeyPair.key_name
   vpc_security_group_ids = [aws_security_group.monitoring_pipeline_SG_In.id, aws_security_group.monitoring_pipeline_SG_Out.id]
-  # iam_instance_profile   = aws_iam_instance_profile.monitoring_pipeline_profile.name
   user_data              = var.jenkins_user_data_path
   monitoring             = var.monitoring
   tags                   = var.tags
@@ -68,10 +67,4 @@ resource "aws_security_group" "monitoring_pipeline_SG_Out" {
       description = egress.value.description
     }
   }
-}
-
-# Creating IAM Instance Profile
-resource "aws_iam_instance_profile" "monitoring_pipeline_profile" {
-  name_prefix = "monitoring_pipeline_profile"
-  role        = var.monitoring_pipeline_role
 }
