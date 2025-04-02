@@ -7,7 +7,7 @@ resource "aws_vpc" "main" {
 }
 
 locals {
-  target_az = data.aws_availability_zones.available.names[0]  # e.g., "eu-west-2a"
+  target_az = data.aws_availability_zones.available.names[0] # e.g., "eu-west-2a"
 }
 
 # Setting Up Public Subnet

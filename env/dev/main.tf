@@ -3,9 +3,8 @@ module "iam" {
 }
 
 module "ec2" {
-  source = "./infra/JENKINS"
+  source                   = "./infra/JENKINS"
   monitoring_pipeline_role = module.iam.monitoring_pipeline_role // From IAM 
-  ssh_public_key = var.ssh_public_key
 }
 
 
