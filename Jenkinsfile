@@ -84,6 +84,8 @@ pipeline {
                             sh '''
                                 terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
                                 terraform plan -out=tfplan | sed "s/^/${ANSI_COLOR}[TF Plan] ${ANSI_RESET}/"
+                                terraform apply -auto-approve tfplan | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"
+
                             '''
                         }
                         echo "${ANSI_SUCCESS}✅ Terraform plan generated successfully${ANSI_RESET}"
@@ -95,25 +97,25 @@ pipeline {
             }
         }
 
-        stage('Approval') {
-            steps {
-                script {
-                    echo "${ANSI_COLOR}🛑 Manual Approval Required${ANSI_RESET}"
-                    def userInput = input(
-                        id: 'approvePlan',
-                        message: 'Approve Terraform Plan?',
-                        ok: 'Approve',
-                        submitter: 'admin',
-                        parameters: [choice(name: 'ACTION', choices: ['Approve', 'Reject'], description: 'Approve or Reject the plan')]
-                    )
-                    if (userInput == 'Reject') {
-                        echo "${ANSI_ERROR}❌ Plan rejected by user${ANSI_RESET}"
-                        error 'Pipeline stopped due to rejection'
-                    }
-                    echo "${ANSI_SUCCESS}👍 Plan approved${ANSI_RESET}"
-                }
-            }
-        }
+        // stage('Approval') {
+        //     steps {
+        //         script {
+        //             echo "${ANSI_COLOR}🛑 Manual Approval Required${ANSI_RESET}"
+        //             def userInput = input(
+        //                 id: 'approvePlan',
+        //                 message: 'Approve Terraform Plan?',
+        //                 ok: 'Approve',
+        //                 submitter: 'admin',
+        //                 parameters: [choice(name: 'ACTION', choices: ['Approve', 'Reject'], description: 'Approve or Reject the plan')]
+        //             )
+        //             if (userInput == 'Reject') {
+        //                 echo "${ANSI_ERROR}❌ Plan rejected by user${ANSI_RESET}"
+        //                 error 'Pipeline stopped due to rejection'
+        //             }
+        //             echo "${ANSI_SUCCESS}👍 Plan approved${ANSI_RESET}"
+        //         }
+        //     }
+        // }
 
         stage('Terraform Apply') {
             steps {
@@ -121,7 +123,6 @@ pipeline {
                     echo "${ANSI_COLOR}🚀 Applying Terraform Changes...${ANSI_RESET}"
                     try {
                         dir('env/dev') {
-                            // Use the AWS credentials directly from environment variables
                             sh 'terraform apply -auto-approve tfplan | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"'
                         }
                         echo "${ANSI_SUCCESS}🎉 Terraform changes applied successfully!${ANSI_RESET}"
