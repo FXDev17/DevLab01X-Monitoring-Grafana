@@ -14,52 +14,67 @@ pipeline {
         stage('Security Testing') {
             steps {
                 script {
-                    def RED = '\u001b[31m'
-                    def GREEN = '\u001b[32m'
-                    def RESET = '\u001b[0m'
+                    echo 'Starting Security Tests...'
 
+                    // Checkov: Static code analysis
+                    echo 'Running CheckOV Scan...'
                     try {
-                        // Checkov: Static code analysis
-                        sh '''
+                        sh  '''
                             source /opt/security-tools-env/bin/activate
                             checkov -d . --soft-fail
                             deactivate
-                        '''
+                            ''' // to use when checkov is created in an venv
                         // sh 'sudo /home/ec2-user/.local/bin/checkov -d . --soft-fail'
+                        echo 'Checkov scan completed successfully.'
+                    } catch (Exception e) {
+                        echo "Checkov scan failed: ${e.getMessage()}"
+                    }
 
-                        // Trivy: Filesystem scan
+                    // Trivy: Filesystem scan
+                    echo 'Running Trivy filesystem scan...'
+                    try {
                         sh 'trivy fs --exit-code 1 --severity HIGH,CRITICAL .'
+                        echo 'Trivy scan completed successfully.'
+                    } catch (Exception e) {
+                        echo "Trivy scan failed: ${e.getMessage()}"
+                        error 'Stopping pipeline due to critical security issues'
+                    }
 
-                        // Snyk
-                        sh 'ls -la .'  // Debug
+                    echo 'Running Snyk vulnerability test...'
+                    sh 'ls -la .'  // Debug
+                    try {
                         withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
                             sh 'snyk auth $SNYK_TOKEN && echo "Snyk authenticated successfully"'
                             sh 'snyk iac test . --severity-threshold=high -d || true'
                         }
-
-                        // Gitleaks: Secrets detection
-                        sh 'gitleaks detect --source . --exit-code 1'
-
-                        echo -e "${GREEN}✔ Pass${RESET}"
+                        echo 'Snyk test completed successfully.'
                     } catch (Exception e) {
-                        echo -e "${RED}✖ Security Testing failed: ${e.getMessage()}${RESET}"
-                        if (e.getMessage().contains('trivy') || e.getMessage().contains('gitleaks')) {
-                            error 'Stopping pipeline due to critical security issues'
-                        }
+                        echo "Snyk test failed: ${e.getMessage()}"
                     }
+
+                    // Gitleaks: Secrets detection
+                    echo 'Running Gitleaks secrets detection...'
+                    try {
+                        sh 'gitleaks detect --source . --exit-code 1'
+                        echo 'Gitleaks scan completed successfully.'
+                    } catch (Exception e) {
+                        echo "Gitleaks failed: ${e.getMessage()}"
+                        error 'Stopping pipeline due to secrets detected'
+                    }
+
+                    echo 'All security tests completed.'
                 }
             }
         }
 
-        // Pipeline Check Terraform Plan With SSHKeys Config
+        Pipeline Check Terraform Plan With SSHKeys
         stage('Terraform Plan') {
-            steps {
+            steps { 
                 script {
-                    def RED = '\u001b[31m'
-                    def GREEN = '\u001b[32m'
-                    def RESET = '\u001b[0m'
-
                     try {
+                        echo 'Generating Terraform Plan...'
+                        
+                        // Change to the env/dev directory before running terraform commands
                         dir('env/dev') {
                             // Securely pass the SSH key using withCredentials
                             withCredentials([string(credentialsId: 'jenkins_ssh_public_key', variable: 'SSH_KEY')]) {
@@ -70,14 +85,14 @@ pipeline {
                                 sh "terraform plan -var 'ssh_public_key=${SSH_KEY}' -out=tfplan"
                             }
                         }
-                        echo -e "${GREEN}✔ Pass${RESET}"
                     } catch (Exception e) {
-                        echo -e "${RED}✖ Terraform Plan failed: ${e.getMessage()}${RESET}"
+                        echo "Terraform Plan failed: ${e.getMessage()}"
                         error 'Stopping pipeline due to Terraform Plan failure'
                     }
                 }
             }
         }
+
 
         // stage('Terraform Plan') {
         //     steps { 
@@ -103,50 +118,38 @@ pipeline {
         //     }
         // }
 
+
         // Pipeline Check Terraform Approval
         stage('Approval') {
             steps {
                 script {
-                    def RED = '\u001b[31m'
-                    def GREEN = '\u001b[32m'
-                    def RESET = '\u001b[0m'
-
-                    try {
-                        def userInput = input(
-                            id: 'approvePlan',
-                            message: 'Approve Terraform Plan?',
-                            ok: 'Approve',
-                            submitter: 'admin',  // Optional: restrict to admins
-                            parameters: [choice(name: 'ACTION', choices: ['Approve', 'Reject'], description: 'Approve or Reject the plan')]
-                        )
-                        if (userInput == 'Reject') {
-                            echo -e "${RED}✖ Plan rejected by user${RESET}"
-                            error 'Pipeline stopped due to rejection.'
-                        }
-                        echo -e "${GREEN}✔ Pass${RESET}"
-                    } catch (Exception e) {
-                        echo -e "${RED}✖ Approval failed: ${e.getMessage()}${RESET}"
-                        error 'Stopping pipeline due to approval failure'
+                    def userInput = input(
+                        id: 'approvePlan',
+                        message: 'Approve Terraform Plan?',
+                        ok: 'Approve',
+                        submitter: 'admin',  // Optional: restrict to admins
+                        parameters: [choice(name: 'ACTION', choices: ['Approve', 'Reject'], description: 'Approve or Reject the plan')]
+                    )
+                    if (userInput == 'Reject') {
+                        echo 'Plan rejected by user.'
+                        error 'Pipeline stopped due to rejection.'
                     }
+                    echo 'Plan approved. Proceeding...'
                 }
             }
         }
-
         // Pipeline Check Terraform Apply
         stage('Terraform Apply') {
             steps {
                 script {
-                    def RED = '\u001b[31m'
-                    def GREEN = '\u001b[32m'
-                    def RESET = '\u001b[0m'
-
                     try {
+                        echo 'Applying Terraform changes...'
                         dir('env/dev') {
+                            
                             sh 'terraform apply -auto-approve tfplan'
                         }
-                        echo -e "${GREEN}✔ Pass${RESET}"
                     } catch (Exception e) {
-                        echo -e "${RED}✖ Terraform Apply failed: ${e.getMessage()}${RESET}"
+                        echo "Terraform Apply failed: ${e.getMessage()}"
                         error 'Stopping pipeline due to Terraform Apply failure'
                     }
                 }
@@ -156,20 +159,14 @@ pipeline {
 
     post {
         always {
-            def YELLOW = '\u001b[33m'
-            def RESET = '\u001b[0m'
-            echo -e "${YELLOW}🧹 Cleaning up...${RESET}"
-            sh 'rm -f env/dev/tfplan || true'
+            echo 'Pipeline finished. Cleaning up...'
+            sh 'rm -f tfplan'
         }
         success {
-            def GREEN = '\u001b[32m'
-            def RESET = '\u001b[0m'
-            echo -e "${GREEN}🎉 Pipeline completed successfully!${RESET}"
+            echo 'Terraform changes applied successfully!'
         }
         failure {
-            def RED = '\u001b[31m'
-            def RESET = '\u001b[0m'
-            echo -e "${RED}❌ Pipeline failed - Check logs${RESET}"
+            echo 'Pipeline failed. Review the logs for details.'
         }
     }
 }
