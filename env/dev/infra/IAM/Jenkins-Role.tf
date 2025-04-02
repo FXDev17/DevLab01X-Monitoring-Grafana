@@ -50,4 +50,4 @@ resource "aws_iam_instance_profile" "monitoring_pipeline_profile" {
   role = aws_iam_role.monitoring_pipeline_Role.name
 }
 
-data "aws_caller_identity" "current" {}
+data "aws_caller_identity" "current_execution" {}
