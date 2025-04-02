@@ -35,11 +35,11 @@ variable "cidr_block_public_subnet" {
   default     = "10.0.1.0/24"
 }
 
-variable "public_availability_zone" {
-  description = "Public Subnet AZ"
-  type        = string
-  default     = "eu-west-2"
-}
+# variable "public_availability_zone" {
+#   description = "Public Subnet AZ"
+#   type        = string
+#   default     = "eu-west-2a"
+# }
 
 variable "public_subnet_tags" {
   description = "Tag For Public Subent"
@@ -51,7 +51,6 @@ variable "public_subnet_tags" {
   }
 }
 
-
 # Private Subnet Variables 
 variable "cidr_block_private_subnet" {
   description = "Private Subnet"
@@ -59,11 +58,11 @@ variable "cidr_block_private_subnet" {
   default     = "10.0.2.0/24"
 }
 
-variable "private_availability_zone" {
-  description = "Private Subnet AZ"
-  type        = string
-  default     = "eu-west-2"
-}
+# variable "private_availability_zone" {
+#   description = "Private Subnet AZ"
+#   type        = string
+#   default     = "eu-west-2a"
+# }
 
 variable "private_subnet_tags" {
   description = "Tag For Private Subent"
