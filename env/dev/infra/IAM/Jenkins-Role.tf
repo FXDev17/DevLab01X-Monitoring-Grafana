@@ -17,7 +17,7 @@ resource "aws_iam_role" "monitoring_pipeline_Role" {
 
 # Defining the IAM Policy Document
 data "aws_iam_policy_document" "monitoring_pipeline_Permissions_Policy" {
-  # S3 Permissions (no EC2-specific condition)
+  # S3 Permissions (no condition)
   statement {
     actions = [
       "s3:ListBucket",
@@ -31,33 +31,47 @@ data "aws_iam_policy_document" "monitoring_pipeline_Permissions_Policy" {
     ]
   }
 
-  # EC2 and IAM Permissions (with condition)
+  # EC2 Operational Permissions (with condition)
   statement {
     actions = [
-      # EC2 Permissions
       "ec2:DescribeInstances",
       "ec2:StartInstances",
       "ec2:StopInstances",
       "ec2:ImportKeyPair",
-      "ec2:CreateSecurityGroup",
-      # IAM Permissions
-      "iam:CreateRole",
-      "iam:CreatePolicy",
-      "iam:GetPolicy"  
+      "ec2:CreateSecurityGroup"
     ]
     resources = [
-      # EC2 resources
       "arn:aws:ec2:eu-west-1:817520395860:key-pair/*",
-      "arn:aws:ec2:eu-west-1:817520395860:security-group/*",
-      # IAM resources
-      "arn:aws:iam::817520395860:role/monitoring_pipeline_Role/*",
-      "arn:aws:iam::817520395860:policy/monitoring_pipeline_Policy/*"
+      "arn:aws:ec2:eu-west-1:817520395860:security-group/*"
     ]
     condition {
       test     = "StringEquals"
       variable = "ec2:ResourceTag/ManagedBy"
       values   = ["jenkins"]
     }
+  }
+
+  # EC2 Read Permissions (no condition, broader scope)
+  statement {
+    actions = [
+      "ec2:DescribeKeyPairs",
+      "ec2:DescribeSecurityGroups"
+    ]
+    resources = ["*"]  # Describe actions often require broader access
+  }
+
+  # IAM Permissions (with condition where applicable)
+  statement {
+    actions = [
+      "iam:CreateRole",
+      "iam:CreatePolicy",
+      "iam:GetRole",
+      "iam:GetPolicy"
+    ]
+    resources = [
+      "arn:aws:iam::817520395860:role/monitoring_pipeline_Role/*",
+      "arn:aws:iam::817520395860:policy/monitoring_pipeline_Policy/*"
+    ]
   }
 }
 
