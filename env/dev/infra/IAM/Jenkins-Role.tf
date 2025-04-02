@@ -42,7 +42,8 @@ data "aws_iam_policy_document" "monitoring_pipeline_Permissions_Policy" {
       "ec2:CreateSecurityGroup",
       # IAM Permissions
       "iam:CreateRole",
-      "iam:CreatePolicy"
+      "iam:CreatePolicy",
+      "iam:GetPolicy"  
     ]
     resources = [
       # EC2 resources
