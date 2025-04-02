@@ -93,7 +93,6 @@ pipeline {
                                 
         //                         // Run terraform plan from the correct directory and securely pass the SSH key
         //                         sh "terraform plan -out=tfplan"
-
         //                 }
         //             } catch (Exception e) {
         //                 echo "Terraform Plan failed: ${e.getMessage()}"
