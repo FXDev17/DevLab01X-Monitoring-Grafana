@@ -129,3 +129,8 @@ variable "tags" {
   }
 }
 
+variable "vpc_id" {
+  description = "ID of the VPC for EC2 resources"
+  type        = string
+}
+
