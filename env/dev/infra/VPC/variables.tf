@@ -98,3 +98,49 @@ variable "private_destination_cidr_block" {
   type        = string
   default     = "10.0.0.0/24"
 }
+
+variable "lambda_security_groups_egress" {
+  description = "Lambda SG Egress"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+    description = string
+  }))
+  default = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "All All outbound traffic"
+    }
+  ]
+}
+
+
+variable "security_groups_egress" {
+  description = "Pipeline SG Egress"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+    description = string
+  }))
+  default = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "All All outbound traffic"
+    }
+  ]
+}
+
+variable "lambda_SG_Out" {
+  description = "value"
+  type = string
+}

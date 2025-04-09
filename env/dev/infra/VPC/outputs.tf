@@ -18,3 +18,12 @@ output "internet_gateway_id" {
 output "nat_gateway_id" {
   value = aws_nat_gateway.nat_gateway.id
 }
+
+
+output "lambda_SG_Out" {
+  value = aws_security_group.lambda_SG_Out.id
+}
+
+output "subnet_ids" {
+  value = [aws_subnet.private_subnet.id, aws_subnet.public_subnet.id]
+}
