@@ -8,11 +8,11 @@ variable "key_pair_name" {
   default     = "00X_monitoring_pipeline"
 }
 
-variable "ssh_public_key" {
-  description = "Pipeline KeyPair Key"
-  type        = string
-  default = file("~/.ssh/jenkins_dev_pipeline_keys.pub")
-}
+# variable "ssh_public_key" {
+#   description = "Pipeline KeyPair Key"
+#   type        = string
+#   default = file("~/.ssh/jenkins_dev_pipeline_keys.pub")
+# }
 
 variable "ami_id" {
   description = "Pipeline AMI ID"
