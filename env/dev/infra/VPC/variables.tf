@@ -64,28 +64,28 @@ variable "cidr_block" {
 variable "cidr_block_public_subnet" {
   description = "Public Subnet"
   type        = string
-  default     = "10.0.1.0/24"
+  default     = "10.0.1.0/16"
 }
 
 # Private Subnet Variables 
 variable "cidr_block_private_subnet" {
   description = "Private Subnet CIDR Block"
   type        = string
-  default     = "10.0.2.0/24"
+  default     = "10.0.2.0/16"
 }
 
 # Public Routes Variables
 variable "public_destination_cidr_block" {
   description = "Public Subnet CIDR Block"
   type        = string
-  default     = "10.0.1.0/24" 
+  default     = "10.0.1.0/16" 
 }
 
 # Private Routes Variables
 variable "private_destination_cidr_block" {
   description = "Private Subnet CIDR Block"
   type        = string
-  default     = "10.0.2.0/24" 
+  default     = "10.0.2.0/16" 
 }
 
 # Lambda Security Group Egress
