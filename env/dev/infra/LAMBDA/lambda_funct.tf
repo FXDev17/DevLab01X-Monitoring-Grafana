@@ -23,7 +23,7 @@ resource "aws_lambda_function" "api_funct" {
   timeout          = var.lambda_timeout
   memory_size      = var.lambda_memory_size
   source_code_hash = filebase64sha256("${path.module}/lambda_function_payload.zip")
-  reserved_concurrent_executions = 10
+  reserved_concurrent_executions = 45
 
   vpc_config {
     subnet_ids         = var.subnet_ids

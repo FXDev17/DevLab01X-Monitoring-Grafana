@@ -57,35 +57,35 @@ variable "igw_tags" {
 variable "cidr_block" {
   description = "CIDR"
   type = string
-  default = "10.0.0.0/24"
+  default = "10.0.0.0/16"
 }
 
 # Public Subnet Variables 
 variable "cidr_block_public_subnet" {
   description = "Public Subnet"
   type        = string
-  default     = "10.0.1.0/16"
+  default     = "10.0.1.0/24"
 }
 
 # Private Subnet Variables 
 variable "cidr_block_private_subnet" {
   description = "Private Subnet CIDR Block"
   type        = string
-  default     = "10.0.2.0/16"
+  default     = "10.0.2.0/24"
 }
 
 # Public Routes Variables
 variable "public_destination_cidr_block" {
   description = "Public Subnet CIDR Block"
   type        = string
-  default     = "10.0.1.0/16" 
+  default     = "0.0.0.0/0" # Routes To IGW
 }
 
 # Private Routes Variables
 variable "private_destination_cidr_block" {
   description = "Private Subnet CIDR Block"
   type        = string
-  default     = "10.0.2.0/16" 
+  default     = "0.0.0.0/0" # Routes To NAT
 }
 
 # Lambda Security Group Egress

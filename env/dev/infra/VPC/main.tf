@@ -1,8 +1,8 @@
 # Setting Up VPC
-# checkov:skip=CKV2_AWS_5:SG is attached to Lambda (Checkov visibility issue)
-# checkov:skip=CKV2_AWS_12:Default SG unused (custom SGs applied)
-# checkov:skip=CKV2_AWS_11:Flow logs unnecessary for demo (monitor Lambda logs instead)
 resource "aws_vpc" "main" {
+  # checkov:skip=CKV2_AWS_5:SG is attached to Lambda (Checkov visibility issue)
+  # checkov:skip=CKV2_AWS_12:Default SG unused (custom SGs applied)
+  # checkov:skip=CKV2_AWS_11:Flow logs unnecessary for demo (monitor Lambda logs instead)
   cidr_block           = var.cidr_block
   enable_dns_support   = var.enable_dns_support
   enable_dns_hostnames = var.enable_dns_hostnames
@@ -56,21 +56,21 @@ resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.main.id
 }
 
-# Public Route - Using YOUR variable for destination CIDR
+# Public Route 
 resource "aws_route" "public_route" {
   route_table_id         = aws_route_table.public_route_table.id
-  destination_cidr_block = var.cidr_block_public_subnet  # Your original variable
+  destination_cidr_block = var.public_destination_cidr_block 
   gateway_id             = aws_internet_gateway.igw.id
 }
 
-# Private Route - Using YOUR variable for destination CIDR
+# Private Route 
 resource "aws_route" "private_route" {
   route_table_id         = aws_route_table.private_route_table.id
-  destination_cidr_block = var.private_destination_cidr_block  # Your original variable
+  destination_cidr_block = var.private_destination_cidr_block 
   nat_gateway_id         = aws_nat_gateway.nat_gateway.id
 }
 
-# Route Table Associations (unchanged structure, fixed references)
+# Route Table Associations 
 resource "aws_route_table_association" "public_route_table_association" {
   subnet_id      = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.public_route_table.id
