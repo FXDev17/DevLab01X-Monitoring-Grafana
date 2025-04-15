@@ -1,4 +1,7 @@
-# Setting Up VPC (unchanged)
+# Setting Up VPC
+# checkov:skip=CKV2_AWS_5:SG is attached to Lambda (Checkov visibility issue)
+# checkov:skip=CKV2_AWS_12:Default SG unused (custom SGs applied)
+# checkov:skip=CKV2_AWS_11:Flow logs unnecessary for demo (monitor Lambda logs instead)
 resource "aws_vpc" "main" {
   cidr_block           = var.cidr_block
   enable_dns_support   = var.enable_dns_support
@@ -14,7 +17,7 @@ locals {
   target_az = data.aws_availability_zones.available.names[0]
 }
 
-# Subnets (unchanged)
+# Subnets 
 resource "aws_subnet" "public_subnet" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.cidr_block_public_subnet
@@ -29,13 +32,14 @@ resource "aws_subnet" "private_subnet" {
   tags              = var.private_subnet_tags
 }
 
-# Internet Gateway (unchanged)
+# Internet Gateway 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   tags   = var.igw_tags
 }
 
-# NAT Gateway (unchanged)
+# NAT Gateway
+# checkov:skip=CKV2_AWS_19:EIP attached to NAT
 resource "aws_eip" "nat_eip" {}
 
 resource "aws_nat_gateway" "nat_gateway" {
