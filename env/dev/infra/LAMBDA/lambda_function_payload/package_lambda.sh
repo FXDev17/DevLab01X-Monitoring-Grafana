@@ -1,19 +1,42 @@
 #!/bin/bash
 
-# Gets the current directory where this script is located
+# Get the directory where this script is located (resolves to path.module/lambda_function_payload)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Navigate to the lambda_function_payload directory relative to the script's directory
-cd "$SCRIPT_DIR" 
+# Define the working directory as the script's location (where requirements.txt and Lambda code live)
+WORKING_DIR="$SCRIPT_DIR"
 
-# Move to the parent folder where lambda_function_payload is
-cd ../lambda_function_payload
+# Define the output ZIP file location (one level up from the script)
+OUTPUT_DIR="$(dirname "$SCRIPT_DIR")"
+ZIP_FILE="$OUTPUT_DIR/lambda_function_payload.zip"
 
-# Install dependencies in the current directory (lambda_function_payload)
-pip install -r requirements.txt -t .
+# Echo for debugging (optional, remove if not needed in production)
+echo "Script directory: $SCRIPT_DIR"
+echo "Working directory: $WORKING_DIR"
+echo "Output ZIP file: $ZIP_FILE"
 
-# Creates the zip file (lambda_function_payload.zip) from the content in the directory
-zip -r ../lambda_function_payload.zip .
+# Check if requirements.txt exists
+if [ ! -f "$WORKING_DIR/requirements.txt" ]; then
+    echo "Error: requirements.txt not found in $WORKING_DIR"
+    exit 1
+fi
 
-# Go back to the root directory (or wherever you want to keep the ZIP file)
-cd "$SCRIPT_DIR" 
+# Install dependencies into the working directory
+echo "Installing dependencies..."
+if ! pip install -r "$WORKING_DIR/requirements.txt" -t "$WORKING_DIR"; then
+    echo "Error: Failed to install dependencies"
+    exit 1
+fi
+
+# Create the ZIP file from the working directory contents
+echo "Creating ZIP file: $ZIP_FILE"
+cd "$WORKING_DIR" || {
+    echo "Error: Failed to change to $WORKING_DIR"
+    exit 1
+}
+if ! zip -r "$ZIP_FILE" .; then
+    echo "Error: Failed to create ZIP file"
+    exit 1
+fi
+
+echo "Lambda package created successfully at $ZIP_FILE"

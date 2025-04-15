@@ -1,4 +1,6 @@
 # Lambda Log Group
+# checkov:skip=CKV_AWS_158:Default AWS encryption is sufficient for demo logs
+# checkov:skip=CKV_AWS_338:Short retention (7 days) for cost savings
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${var.lambda_function_name}" 
   retention_in_days = var.lambda_retention_in_days
@@ -67,6 +69,10 @@ resource "aws_iam_role_policy_attachment" "lambda_xray" {
 }
 
 # Additional permissions for Lambda Powertools
+
+# checkov:skip=CKV_AWS_355:Wildcard permissions are acceptable for side project Lambda
+# checkov:skip=CKV_AWS_290:Basic Lambda logging/metrics permissions are safe
+
 resource "aws_iam_role_policy" "lambda_powertools" {
   name   = "lambda-powertools"
   role   = aws_iam_role.lambda_exec.id

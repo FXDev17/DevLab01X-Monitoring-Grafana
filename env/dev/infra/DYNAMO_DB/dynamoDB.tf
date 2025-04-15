@@ -1,3 +1,5 @@
+# checkov:skip=CKV_AWS_119:Default encryption is fine for demo
+# checkov:skip=CKV_AWS_28:TTL handles data lifecycle
 resource "aws_dynamodb_table" "request_metrics_db" {
   name         = var.dB_name
   billing_mode = var.dB_billing_mode

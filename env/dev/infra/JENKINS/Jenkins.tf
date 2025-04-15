@@ -7,6 +7,7 @@ resource "aws_key_pair" "monitoring_pipeline_KeyPair" {
 # Creating Jenkins Pipeline
 resource "aws_instance" "monitoring_pipeline" {
   # checkov:skip=CKV_AWS_126:Detailed monitoring NOT required for personal project
+  # checkov:skip=CKV2_AWS_41:Using EC2 user credentials instead of IAM role (pipeline instance)
   ami                    = var.ami_id
   instance_type          = var.instance_type
   ebs_optimized          = var.ebs_optimized

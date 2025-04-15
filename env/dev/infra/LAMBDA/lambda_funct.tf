@@ -1,7 +1,7 @@
 # With local-exec provisioner the ZIP file will be automatically created during deployment
 resource "null_resource" "package_lambda" {
   provisioner "local-exec" {
-    command = "${path.module}/infra/LAMBDA/lambda_function_payload/script/package_lambda.sh"
+    command = "${path.module}/lambda_function_payload/package_lambda.sh"
   }
 
   triggers = {
@@ -10,6 +10,9 @@ resource "null_resource" "package_lambda" {
 }
 
 # Setting Up Lambda Function 
+# checkov:skip=CKV_AWS_272:Code signing not needed for side project
+# checkov:skip=CKV_AWS_116:CloudWatch Logs sufficient for error tracking
+# checkov:skip=CKV_AWS_173:Default AWS encryption is sufficient
 resource "aws_lambda_function" "api_funct" {
   
   filename         = "${path.module}/lambda_function_payload.zip"
@@ -20,6 +23,7 @@ resource "aws_lambda_function" "api_funct" {
   timeout          = var.lambda_timeout
   memory_size      = var.lambda_memory_size
   source_code_hash = filebase64sha256("${path.module}/lambda_function_payload.zip")
+  reserved_concurrent_executions = 10
 
   vpc_config {
     subnet_ids         = var.subnet_ids

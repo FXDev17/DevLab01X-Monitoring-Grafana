@@ -19,7 +19,6 @@ output "nat_gateway_id" {
   value = aws_nat_gateway.nat_gateway.id
 }
 
-
 output "lambda_SG_Out" {
   value = aws_security_group.lambda_SG_Out.id
 }
