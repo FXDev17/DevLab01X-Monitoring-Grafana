@@ -85,8 +85,12 @@ pipeline {
                                 // terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
                                 // terraform plan -out=tfplan | sed "s/^/${ANSI_COLOR}[TF Plan] ${ANSI_RESET}/"
                                 // terraform apply -auto-approve tfplan | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"
-                                   terraform init | sed "s/^/${ANSI_COLOR}[TF Init] ${ANSI_RESET}/"
-                                   terraform apply -auto-approve | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"
+                                   
+                                   rm -f tfplan
+                                   terraform init
+                                   terraform refresh
+                                   terraform plan -out=tfplan
+                                   terraform apply -auto-approve tfplan
 
                             '''
                         }
