@@ -1,7 +1,7 @@
 # Creating KeyPair
 resource "aws_key_pair" "monitoring_pipeline_KeyPair" {
   key_name   = var.key_pair_name
-  public_key = file("~/.ssh/jenkins_dev_pipeline_keys.pub")
+  public_key = file("${path.module}/pipeline-pub-key/jenkins_dev_pipeline_keys.pub")
   }
 
 # Creating Jenkins Pipeline

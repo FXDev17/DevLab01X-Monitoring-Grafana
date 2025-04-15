@@ -74,7 +74,7 @@ pipeline {
             }
         }
 
-        stage('Terraform Plan') {
+        stage('Terraform Plan & Apply') {
             steps {
                 script {
                     echo "${ANSI_COLOR}📝 Generating Terraform Plan...${ANSI_RESET}"
@@ -118,23 +118,23 @@ pipeline {
         //     }
         // }
 
-        stage('Terraform Apply') {
-            steps {
-                script {
-                    echo "${ANSI_COLOR}🚀 Applying Terraform Changes...${ANSI_RESET}"
-                    try {
-                        dir('env/dev') {
-                            sh 'terraform apply -auto-approve tfplan | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"'
-                        }
-                        echo "${ANSI_SUCCESS}🎉 Terraform changes applied successfully!${ANSI_RESET}"
-                    } catch (Exception e) {
-                        echo "${ANSI_ERROR}❌ Terraform Apply failed: ${e.getMessage()}${ANSI_RESET}"
-                        error 'Stopping pipeline due to Terraform Apply failure'
-                    }
-                }
-            }
-        }
-    }
+    //     stage('Terraform Apply') {
+    //         steps {
+    //             script {
+    //                 echo "${ANSI_COLOR}🚀 Applying Terraform Changes...${ANSI_RESET}"
+    //                 try {
+    //                     dir('env/dev') {
+    //                         sh 'terraform apply -auto-approve tfplan | sed "s/^/${ANSI_COLOR}[TF Apply] ${ANSI_RESET}/"'
+    //                     }
+    //                     echo "${ANSI_SUCCESS}🎉 Terraform changes applied successfully!${ANSI_RESET}"
+    //                 } catch (Exception e) {
+    //                     echo "${ANSI_ERROR}❌ Terraform Apply failed: ${e.getMessage()}${ANSI_RESET}"
+    //                     error 'Stopping pipeline due to Terraform Apply failure'
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     post {
         always {
