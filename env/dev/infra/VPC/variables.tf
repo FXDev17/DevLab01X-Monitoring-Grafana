@@ -56,8 +56,8 @@ variable "igw_tags" {
 # CIDR
 variable "cidr_block" {
   description = "CIDR"
-  type = string
-  default = "10.0.0.0/16"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
 # Public Subnet Variables 
@@ -111,5 +111,5 @@ variable "lambda_security_groups_egress" {
 
 variable "lambda_SG_Out" {
   description = "value"
-  type = string
+  type        = string
 }

@@ -20,14 +20,14 @@ module "opentelemetry_instance" {
 
 module "lambda" {
   source                 = "./infra/LAMBDA"
-  vpc_id                 = module.vpc.vpc_id
   subnet_ids             = module.vpc.subnet_ids
   dynamodb_table_name    = module.dynamodB.table_name
   lambda_SG_Out          = module.vpc.lambda_SG_Out
   request_metrics_db_arn = module.dynamodB.request_metrics_db_arn
   api_key                = var.api_key
   loki_endpoint          = var.loki_endpoint
-  xray_daemon_address =  "${module.opentelemetry_instance.opentelemetry_private_ip}:2000"
+  xray_daemon_address    = "${module.opentelemetry_instance.opentelemetry_private_ip}:2000"
+  lambda_basic_execution = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 module "api_gateway" {

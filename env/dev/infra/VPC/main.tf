@@ -59,14 +59,14 @@ resource "aws_route_table" "private_route_table" {
 # Public Route 
 resource "aws_route" "public_route" {
   route_table_id         = aws_route_table.public_route_table.id
-  destination_cidr_block = var.public_destination_cidr_block 
+  destination_cidr_block = var.public_destination_cidr_block
   gateway_id             = aws_internet_gateway.igw.id
 }
 
 # Private Route 
 resource "aws_route" "private_route" {
   route_table_id         = aws_route_table.private_route_table.id
-  destination_cidr_block = var.private_destination_cidr_block 
+  destination_cidr_block = var.private_destination_cidr_block
   nat_gateway_id         = aws_nat_gateway.nat_gateway.id
 }
 

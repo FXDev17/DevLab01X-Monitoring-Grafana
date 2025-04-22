@@ -75,15 +75,15 @@ variable "ot_security_groups_ingress" {
       to_port     = 8080
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
-      description = "HTTP access" 
+      description = "HTTP access"
     },
     {
-    from_port   = 2000
-    to_port     = 2000
-    protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "OpenTelemtry" 
-  }
+      from_port   = 2000
+      to_port     = 2000
+      protocol    = "udp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "OpenTelemtry"
+    }
   ]
 }
 

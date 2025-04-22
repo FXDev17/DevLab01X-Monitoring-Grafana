@@ -75,7 +75,7 @@ variable "security_groups_ingress" {
       to_port     = 8080
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
-      description = "HTTP access" 
+      description = "HTTP access"
     }
   ]
 }

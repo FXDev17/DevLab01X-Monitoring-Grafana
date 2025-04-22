@@ -3,13 +3,13 @@
 # checkov:skip=CKV_AWS_338:Short retention (7 days) for cost savings
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${var.lambda_function_name}" 
-  retention_in_days = var.lambda_retention_in_days
+  retention_in_days = 3
 }
 
 
 # Lambda Execution Role 
 resource "aws_iam_role" "lambda_exec" {
-  name = var.lambda_exec_role
+  name = "lambda_exec_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

@@ -1,28 +1,24 @@
 resource "null_resource" "package_lambda" {
-  provisioner "local-exec" {
-    command     = "${path.module}/lambda_function_payload/package_lambda.sh"
-    working_dir = "${path.module}"
+  triggers = {
+    code_hash = filebase64sha256("${path.module}/lambda_function_payload/lambda_function.py")
+    deps_hash = filebase64sha256("${path.module}/lambda_function_payload/requirements.txt")
   }
 
-  triggers = {
-    always_run = timestamp()
+  provisioner "local-exec" {
+    command = "/bin/bash -c 'cd ${path.module}/lambda_function_payload && ./package_lambda.sh'"
   }
 }
 
-# Setting Up Lambda Function
-# checkov:skip=CKV_AWS_272:Code signing not needed for side project
-# checkov:skip=CKV_AWS_116:CloudWatch Logs sufficient for error tracking
-# checkov:skip=CKV_AWS_173:Default AWS encryption is sufficient
 resource "aws_lambda_function" "api_funct" {
   filename         = "${path.module}/lambda_function_payload.zip"
   function_name    = var.lambda_function_name
   role             = aws_iam_role.lambda_exec.arn
-  handler          = var.lambda_handler
-  runtime          = var.lambda_runtime
-  timeout          = var.lambda_timeout
-  memory_size      = var.lambda_memory_size
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.9"
+  timeout          = 10
+  memory_size      = 256
   source_code_hash = filebase64sha256("${path.module}/lambda_function_payload.zip")
-  reserved_concurrent_executions = 45
+  # reserved_concurrent_executions = 40
 
   vpc_config {
     subnet_ids         = var.subnet_ids
@@ -30,7 +26,7 @@ resource "aws_lambda_function" "api_funct" {
   }
 
   tracing_config {
-    mode = "Active" # For X-Ray tracing
+    mode = "Active"
   }
 
   environment {
@@ -39,13 +35,14 @@ resource "aws_lambda_function" "api_funct" {
       POWERTOOLS_SERVICE_NAME = "api_funct"
       LOKI_ENDPOINT           = var.loki_endpoint
       LOKI_API_KEY            = var.api_key
-      AWS_XRAY_DAEMON_ADDRESS = var.xray_daemon_address # OpenTelemetry Collector
+      AWS_XRAY_DAEMON_ADDRESS = var.xray_daemon_address
     }
   }
 
   depends_on = [
+    null_resource.package_lambda,
     aws_iam_role_policy_attachment.lambda_logs,
-    aws_cloudwatch_log_group.lambda_logs,
-    null_resource.package_lambda
+    aws_iam_role_policy_attachment.lambda_vpc,
+    aws_iam_role_policy_attachment.lambda_xray,
   ]
 }

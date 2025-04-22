@@ -21,26 +21,26 @@ resource "aws_iam_role" "grafana_cloudwatch" {
 }
 
 resource "aws_iam_role_policy" "grafana_cloudwatch_policy" {
-  name   = "grafana-cloudwatch-policy"
-  role   = aws_iam_role.grafana_cloudwatch.id
+  name = "grafana-cloudwatch-policy"
+  role = aws_iam_role.grafana_cloudwatch.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Action = [
-            "tag:GetResources",
-            "cloudwatch:GetMetricData",
-            "cloudwatch:ListMetrics",
-            "apigateway:GET",
-            "aps:ListWorkspaces",
-            "autoscaling:DescribeAutoScalingGroups",
-            "dms:DescribeReplicationInstances",
-            "dms:DescribeReplicationTasks",
-            "ec2:DescribeTransitGatewayAttachments",
-            "ec2:DescribeSpotFleetRequests",
-            "shield:ListProtections",
-            "storagegateway:ListGateways",
-            "storagegateway:ListTagsForResource"
+          "tag:GetResources",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:ListMetrics",
+          "apigateway:GET",
+          "aps:ListWorkspaces",
+          "autoscaling:DescribeAutoScalingGroups",
+          "dms:DescribeReplicationInstances",
+          "dms:DescribeReplicationTasks",
+          "ec2:DescribeTransitGatewayAttachments",
+          "ec2:DescribeSpotFleetRequests",
+          "shield:ListProtections",
+          "storagegateway:ListGateways",
+          "storagegateway:ListTagsForResource"
         ]
         Effect   = "Allow"
         Resource = "*"

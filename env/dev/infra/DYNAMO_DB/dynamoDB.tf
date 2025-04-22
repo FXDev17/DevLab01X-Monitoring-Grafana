@@ -17,8 +17,8 @@ resource "aws_dynamodb_table" "request_metrics_db" {
   }
 
   attribute {
-    name = "path"        
-    type = "S"           
+    name = "path"
+    type = "S"
   }
 
   global_secondary_index {

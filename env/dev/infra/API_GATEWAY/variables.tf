@@ -6,8 +6,8 @@ variable "agw_name" {
 
 variable "agw_function_name" {
   description = "Lambda Function Name"
-  type = string
-  default = "api_funct"
+  type        = string
+  default     = "api_funct"
 }
 
 variable "agw_description" {
@@ -80,7 +80,7 @@ variable "lambda_arn" {
 variable "vpc_id" {
   description = "ID of the VPC for VPC-linked API Gateway (optional if not VPC-linked)"
   type        = string
-  default     = null  # Optional: allows vpc_id to be unset if not needed
+  default     = null
 }
 
 variable "lambda_name" {
@@ -89,4 +89,10 @@ variable "lambda_name" {
 
 variable "lambda_invoke_arn" {
   type = string
+}
+
+variable "agw_region" {
+  description = "AGW Region"
+  type        = string
+  default     = "eu-west-2"
 }

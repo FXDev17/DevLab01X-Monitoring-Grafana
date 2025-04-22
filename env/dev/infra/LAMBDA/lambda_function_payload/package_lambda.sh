@@ -1,16 +1,11 @@
 #!/bin/bash
 
-# Get the directory where this script is located (resolves to path.module/lambda_function_payload)
+# Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-# Define the working directory as the script's location (where requirements.txt and Lambda code live)
 WORKING_DIR="$SCRIPT_DIR"
-
-# Define the output ZIP file location (one level up from the script)
 OUTPUT_DIR="$(dirname "$SCRIPT_DIR")"
 ZIP_FILE="$OUTPUT_DIR/lambda_function_payload.zip"
 
-# Echo for debugging
 echo "Script directory: $SCRIPT_DIR"
 echo "Working directory: $WORKING_DIR"
 echo "Output ZIP file: $ZIP_FILE"
@@ -21,26 +16,33 @@ if [ ! -f "$WORKING_DIR/requirements.txt" ]; then
     exit 1
 fi
 
-# Clean up any existing dependencies to avoid conflicts
+# Clean up existing dependencies and ZIP file
 echo "Cleaning up existing dependencies..."
 rm -rf "$WORKING_DIR"/*.pyc "$WORKING_DIR"/__pycache__ "$WORKING_DIR"/*.dist-info "$WORKING_DIR"/*.egg-info
+rm -rf "$WORKING_DIR"/aws_xray_sdk "$WORKING_DIR"/boto3 "$WORKING_DIR"/botocore
+rm -rf "$WORKING_DIR"/aws_lambda_powertools "$WORKING_DIR"/loguru "$WORKING_DIR"/grafana_loki "$WORKING_DIR"/requests
+rm -f "$ZIP_FILE"
 
-# Install dependencies into the working directory
+# Install dependencies in a Lambda-compatible environment
 echo "Installing dependencies..."
-if ! pip install -r "$WORKING_DIR/requirements.txt" -t "$WORKING_DIR"; then
+docker run --rm -v "$WORKING_DIR:/lambda" public.ecr.aws/lambda/python:3.9 \
+    pip install --no-cache-dir -r /lambda/requirements.txt -t /lambda || {
     echo "Error: Failed to install dependencies"
     exit 1
-fi
+}
 
-# Create the ZIP file from the working directory contents
+# Log installed packages for debugging
+docker run --rm -v "$WORKING_DIR:/lambda" public.ecr.aws/lambda/python:3.9 \
+    pip list --path /lambda > "$WORKING_DIR/pip_list.txt"
+
+# Create the ZIP file with deterministic output
 echo "Creating ZIP file: $ZIP_FILE"
 cd "$WORKING_DIR" || {
     echo "Error: Failed to change to $WORKING_DIR"
     exit 1
 }
-# Remove any existing ZIP file to avoid appending
-rm -f "$ZIP_FILE"
-if ! zip -r "$ZIP_FILE" . -x "*.pyc" -x "__pycache__/*" -x "*.dist-info/*" -x "*.egg-info/*"; then
+# Use -X to exclude extra file attributes and ensure consistent timestamps
+if ! find . -type f -not -path "./*.pyc" -not -path "./__pycache__/*" -not -path "./*.dist-info/*" -not -path "./*.egg-info/*" | sort | zip -X -r "$ZIP_FILE" -@; then
     echo "Error: Failed to create ZIP file"
     exit 1
 fi

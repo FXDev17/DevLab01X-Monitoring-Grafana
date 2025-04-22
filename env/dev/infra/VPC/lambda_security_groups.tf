@@ -3,7 +3,7 @@
 resource "aws_security_group" "lambda_SG_Out" {
   name_prefix = "lambda_SG_Out"
   description = "Egress rules for Lambda"
-  vpc_id = aws_vpc.main.id
+  vpc_id      = aws_vpc.main.id
 
   dynamic "egress" {
     for_each = var.lambda_security_groups_egress

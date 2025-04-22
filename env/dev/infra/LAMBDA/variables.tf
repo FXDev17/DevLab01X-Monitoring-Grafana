@@ -1,86 +1,45 @@
-# Setting Up Lambda Function 
-
 variable "lambda_function_name" {
-  description = "Lambda Function Name"
+  description = "Lambda function name"
   type        = string
-  default     = "api_funct"
+  default = "api_funct"
 }
 
-variable "lambda_handler" {
-  description = "Lambda Handler"
-  type        = string
-  default     = "lambda_function.lambda_handler"
-}
-
-variable "lambda_runtime" {
-  description = "Lambda Runtime"
-  type        = string
-  default     = "python3.9"
-}
-
-variable "lambda_timeout" {
-  description = "Lambda Timeouts"
-  type        = number
-  default     = 10
-}
-
-variable "lambda_memory_size" {
-  description = "Lambda Memory Size"
-  type        = number
-  default     = 256
-}
-
-
-variable "lambda_retention_in_days" {
-  description = "Log Retention Days Value"
-  type        = number
-  default     = 5
-}
-
-
-variable "lambda_exec_role" {
-  description = "Role Name"
-  type = string
-  default = "lambda_exec_role"
-}
-
-variable "vpc_id" {
-  description = "Input from Main.tf"
+variable "lambda_SG_Out" {
+  description = "Lambda security group"
   type        = string
 }
 
 variable "subnet_ids" {
-  description = "Input from Main.tf"
+  description = "Subnets for Lambda VPC config"
   type        = list(string)
 }
 
 variable "dynamodb_table_name" {
-  description = "Input from Main.tf"
+  description = "DynamoDB table"
   type        = string
-}
-
-variable "lambda_SG_Out" {
-    description = "Input from Main.tf"
-    type        = string
 }
 
 variable "request_metrics_db_arn" {
-    description = "Input from Main.tf"
-    type        = string
+  description = "DynamoDB ARN for request metrics"
+  type        = string
 }
 
 variable "api_key" {
-  description = "Grafana Cloud API Key"
+  description = "API key"
   type        = string
-  sensitive   = true
 }
 
 variable "loki_endpoint" {
-  description = "Grafana Loki endpoint"
+  description = "Loki endpoint"
   type        = string
 }
 
 variable "xray_daemon_address" {
-  description = "Xray Daemon"
+  description = "X-Ray daemon address"
+  type        = string
+}
+
+variable "lambda_basic_execution" {
+  description = "Retention days for CloudWatch logs"
   type        = string
 }

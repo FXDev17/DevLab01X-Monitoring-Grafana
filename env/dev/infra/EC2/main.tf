@@ -2,7 +2,7 @@
 resource "aws_key_pair" "opentelemetry_instance_keypair" {
   key_name   = var.ot_key_pair_name
   public_key = file("${path.module}/pipeline-pub-key/jenkins-dev-pipeline-keys.pub")
-  }
+}
 
 # Creating Jenkins Pipeline
 resource "aws_instance" "opentelemetry_instance" {
@@ -14,9 +14,9 @@ resource "aws_instance" "opentelemetry_instance" {
   key_name               = aws_key_pair.opentelemetry_instance_keypair.key_name
   vpc_security_group_ids = [aws_security_group.opentelemetry_instance_SG_In.id, aws_security_group.opentelemetry_instance_SG_Out.id] #
   monitoring             = var.ot_monitoring
-  iam_instance_profile = aws_iam_instance_profile.opentelemetry_instance_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.opentelemetry_instance_profile.name
   tags                   = var.ot_tags
-  user_data = <<-EOF
+  user_data              = <<-EOF
     #!/bin/bash
     # Install OpenTelemetry Collector
     curl -LO https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.88.0/otelcol-contrib_0.88.0_linux_amd64.tar.gz
@@ -56,11 +56,11 @@ resource "aws_instance" "opentelemetry_instance" {
     http_tokens   = var.ot_http_tokens
   }
 
-  security_groups = [ 
+  security_groups = [
     aws_security_group.opentelemetry_instance_SG_In.name,
     aws_security_group.opentelemetry_instance_SG_Out.name
-    
-   ]
+
+  ]
 }
 
 # Creating Security Groups

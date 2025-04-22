@@ -2,7 +2,7 @@
 resource "aws_key_pair" "monitoring_pipeline_KeyPair" {
   key_name   = var.key_pair_name
   public_key = file("${path.module}/pipeline-pub-key/jenkins-dev-pipeline-keys.pub")
-  }
+}
 
 # Creating Jenkins Pipeline
 resource "aws_instance" "monitoring_pipeline" {
@@ -26,11 +26,11 @@ resource "aws_instance" "monitoring_pipeline" {
     http_tokens   = var.http_tokens
   }
 
-  security_groups = [ 
+  security_groups = [
     aws_security_group.monitoring_pipeline_SG_In.name,
     aws_security_group.monitoring_pipeline_SG_Out.name
-    
-   ]
+
+  ]
 }
 
 # Creating Security Groups
