@@ -10,7 +10,7 @@ WORKING_DIR="$SCRIPT_DIR"
 OUTPUT_DIR="$(dirname "$SCRIPT_DIR")"
 ZIP_FILE="$OUTPUT_DIR/lambda_function_payload.zip"
 
-# Echo for debugging (optional, remove if not needed in production)
+# Echo for debugging
 echo "Script directory: $SCRIPT_DIR"
 echo "Working directory: $WORKING_DIR"
 echo "Output ZIP file: $ZIP_FILE"
@@ -20,6 +20,10 @@ if [ ! -f "$WORKING_DIR/requirements.txt" ]; then
     echo "Error: requirements.txt not found in $WORKING_DIR"
     exit 1
 fi
+
+# Clean up any existing dependencies to avoid conflicts
+echo "Cleaning up existing dependencies..."
+rm -rf "$WORKING_DIR"/*.pyc "$WORKING_DIR"/__pycache__ "$WORKING_DIR"/*.dist-info "$WORKING_DIR"/*.egg-info
 
 # Install dependencies into the working directory
 echo "Installing dependencies..."
@@ -34,7 +38,9 @@ cd "$WORKING_DIR" || {
     echo "Error: Failed to change to $WORKING_DIR"
     exit 1
 }
-if ! zip -r "$ZIP_FILE" .; then
+# Remove any existing ZIP file to avoid appending
+rm -f "$ZIP_FILE"
+if ! zip -r "$ZIP_FILE" . -x "*.pyc" -x "__pycache__/*" -x "*.dist-info/*" -x "*.egg-info/*"; then
     echo "Error: Failed to create ZIP file"
     exit 1
 fi

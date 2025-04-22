@@ -68,3 +68,19 @@ variable "request_metrics_db_arn" {
     description = "Input from Main.tf"
     type        = string
 }
+
+variable "api_key" {
+  description = "Grafana Cloud API Key"
+  type        = string
+  sensitive   = true
+}
+
+variable "loki_endpoint" {
+  description = "Grafana Loki endpoint"
+  type        = string
+}
+
+variable "xray_daemon_address" {
+  description = "Xray Daemon"
+  type        = string
+}

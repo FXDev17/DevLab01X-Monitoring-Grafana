@@ -1,4 +1,3 @@
-# infra/API_GATEWAY/main.tf
 resource "aws_api_gateway_rest_api" "api" {
   name        = "observability-api"
   description = "API with /ping and /fail endpoints"
@@ -33,7 +32,7 @@ resource "aws_api_gateway_resource" "fail" {
 }
 
 # Methods for each endpoint
-# checkov:skip=CKV_AWS_59:Public API is intentional for now (side project)After Testing Will change it from NONE to AWS_IAM
+# checkov:skip=CKV_AWS_59:Public API is intentional for now (side project)
 # checkov:skip=CKV2_AWS_53:Request validation unnecessary for demo endpoints
 resource "aws_api_gateway_method" "ping" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
@@ -42,13 +41,13 @@ resource "aws_api_gateway_method" "ping" {
   authorization = "NONE"
 }
 
-# checkov:skip=CKV_AWS_59:Public API is intentional for now (side project) After Testing Will change it from NONE to AWS_IAM
+# checkov:skip=CKV_AWS_59:Public API is intentional for now (side project)
 # checkov:skip=CKV2_AWS_53:Request validation unnecessary for demo endpoints
 resource "aws_api_gateway_method" "fail" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.fail.id
   http_method   = "ANY"
-  authorization = "NONE" 
+  authorization = "NONE"
 }
 
 # Integrations to Lambda
@@ -86,7 +85,8 @@ resource "aws_api_gateway_deployment" "api" {
       aws_api_gateway_method.ping.id,
       aws_api_gateway_method.fail.id,
       aws_api_gateway_integration.lambda_ping.id,
-      aws_api_gateway_integration.lambda_fail.id
+      aws_api_gateway_integration.lambda_fail.id,
+      var.lambda_invoke_arn # Trigger redeployment on Lambda changes
     ]))
   }
 
@@ -101,7 +101,7 @@ resource "aws_lambda_permission" "apigw_ping" {
   action        = "lambda:InvokeFunction"
   function_name = var.lambda_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/GET/ping"
+  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/*/ping" # Allow all HTTP methods
 }
 
 resource "aws_lambda_permission" "apigw_fail" {
@@ -109,7 +109,7 @@ resource "aws_lambda_permission" "apigw_fail" {
   action        = "lambda:InvokeFunction"
   function_name = var.lambda_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/GET/fail"
+  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/*/fail" # Allow all HTTP methods
 }
 
 # Stage with X-Ray
@@ -118,7 +118,6 @@ resource "aws_lambda_permission" "apigw_fail" {
 # checkov:skip=CKV2_AWS_4:Basic Lambda logs sufficient for demo
 # checkov:skip=CKV2_AWS_29:WAF unnecessary for demo (using IAM auth/API keys)
 # checkov:skip=CKV2_AWS_51:Client certs unnecessary (using IAM/auth keys)
-
 resource "aws_api_gateway_stage" "prod" {
   stage_name    = "prod"
   rest_api_id   = aws_api_gateway_rest_api.api.id

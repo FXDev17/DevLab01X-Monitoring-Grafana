@@ -1,20 +1,19 @@
-# With local-exec provisioner the ZIP file will be automatically created during deployment
 resource "null_resource" "package_lambda" {
   provisioner "local-exec" {
-    command = "${path.module}/lambda_function_payload/package_lambda.sh"
+    command     = "${path.module}/lambda_function_payload/package_lambda.sh"
+    working_dir = "${path.module}"
   }
 
   triggers = {
-    always_run = "${timestamp()}"
+    always_run = timestamp()
   }
 }
 
-# Setting Up Lambda Function 
+# Setting Up Lambda Function
 # checkov:skip=CKV_AWS_272:Code signing not needed for side project
 # checkov:skip=CKV_AWS_116:CloudWatch Logs sufficient for error tracking
 # checkov:skip=CKV_AWS_173:Default AWS encryption is sufficient
 resource "aws_lambda_function" "api_funct" {
-  
   filename         = "${path.module}/lambda_function_payload.zip"
   function_name    = var.lambda_function_name
   role             = aws_iam_role.lambda_exec.arn
@@ -36,8 +35,12 @@ resource "aws_lambda_function" "api_funct" {
 
   environment {
     variables = {
-      DYNAMODB_TABLE = var.dynamodb_table_name
-    POWERTOOLS_SERVICE_NAME = "api_funct" }
+      DYNAMODB_TABLE          = var.dynamodb_table_name
+      POWERTOOLS_SERVICE_NAME = "api_funct"
+      LOKI_ENDPOINT           = var.loki_endpoint
+      LOKI_API_KEY            = var.api_key
+      AWS_XRAY_DAEMON_ADDRESS = var.xray_daemon_address # OpenTelemetry Collector
+    }
   }
 
   depends_on = [

@@ -9,7 +9,13 @@ module "ec2" {
 }
 
 module "dynamodB" {
-  source             = "./infra/DYNAMO_DB"
+  source = "./infra/DYNAMO_DB"
+}
+
+module "opentelemetry_instance" {
+  source = "./infra/EC2"
+  vpc_id            = module.vpc.vpc_id
+  api_key = var.api_key
 }
 
 module "lambda" {
@@ -19,7 +25,9 @@ module "lambda" {
   dynamodb_table_name    = module.dynamodB.table_name
   lambda_SG_Out          = module.vpc.lambda_SG_Out
   request_metrics_db_arn = module.dynamodB.request_metrics_db_arn
-
+  api_key                = var.api_key
+  loki_endpoint          = var.loki_endpoint
+  xray_daemon_address =  "${module.opentelemetry_instance.opentelemetry_private_ip}:2000"
 }
 
 module "api_gateway" {
@@ -29,3 +37,4 @@ module "api_gateway" {
   lambda_invoke_arn = module.lambda.lambda_invoke_arn
   vpc_id            = module.vpc.vpc_id
 }
+

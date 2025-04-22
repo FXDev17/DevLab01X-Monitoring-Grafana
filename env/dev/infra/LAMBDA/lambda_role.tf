@@ -37,6 +37,12 @@ resource "aws_iam_role_policy_attachment" "lambda_vpc" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
+# Attach X-Ray policy for tracing
+resource "aws_iam_role_policy_attachment" "lambda_xray" {
+  role       = aws_iam_role.lambda_exec.id
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+}
+
 # Attach custom DynamoDB policy
 resource "aws_iam_role_policy" "lambda_dynamodb" {
   name = "lambda-dynamodb-access"
@@ -62,18 +68,11 @@ resource "aws_iam_role_policy" "lambda_dynamodb" {
   })
 }
 
-# Attach X-Ray policy for tracing
-resource "aws_iam_role_policy_attachment" "lambda_xray" {
-  role       = aws_iam_role.lambda_exec.id
-  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
-}
 
 # Additional permissions for Lambda Powertools
-
-# checkov:skip=CKV_AWS_355:Wildcard permissions are acceptable for side project Lambda
-# checkov:skip=CKV_AWS_290:Basic Lambda logging/metrics permissions are safe
-
 resource "aws_iam_role_policy" "lambda_powertools" {
+  # checkov:skip=CKV_AWS_355:Wildcard permissions are acceptable for side project Lambda
+  # checkov:skip=CKV_AWS_290:Basic Lambda logging/metrics permissions are safe
   name   = "lambda-powertools"
   role   = aws_iam_role.lambda_exec.id
   policy = jsonencode({
